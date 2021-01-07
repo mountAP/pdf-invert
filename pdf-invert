@@ -1,6 +1,8 @@
 #!/bin/sh
-if ["$1" != ""]; then
-  echo "Please add the input file as argument 1"
+
+if [ $# -eq 0 ]; then
+  echo "Input file not specified"
+
 else
   tmp_dir=$(mktemp -d -t pdfi-XXXXXXXXXXXX)
   echo "Using dir $tmp_dir"
@@ -11,10 +13,10 @@ else
   echo "Splitting doc into images..."
   pdftoppm -png "$f" document
   echo "Inverting colors..."
-  magick mogrify -negate *.png
+  ${cwd}/magick mogrify -negate *.png
   rm "$f"
   echo "Joining files back together..."
-  convert *.png output.pdf
+  ${cwd}/magick convert *.png output.pdf
   echo "Cleaning up..."
   rm *.png
   cd $cwd
