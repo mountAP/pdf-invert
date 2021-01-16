@@ -4,25 +4,36 @@ if [ $# -eq 0 ]; then
   echo "Input file not specified"
 
 else
+  original="$(readlink -f "$1")"
+  f="${original##*/}"
+  d="${original%/*}"
+
   tmp_dir=$(mktemp -d -t pdfi-XXXXXXXXXXXX)
   echo "Using dir $tmp_dir"
-  cp "$1" "$tmp_dir"
-  f="$(basename -- "$1")"
-  cwd=$(pwd)
+
+  cp "$original" "$tmp_dir/input.pdf"
   cd "$tmp_dir"
+
   echo "Splitting doc into images..."
-  pdftoppm -png "$f" document
+  pdftoppm -png input.pdf document
+  
   echo "Inverting colors..."
-  ${cwd}/magick mogrify -negate *.png
-  rm "$f"
+  magick mogrify -negate *.png
+  
+  rm input.pdf
+  
   echo "Joining files back together..."
-  ${cwd}/magick convert *.png output.pdf
+  magick convert *.png output.pdf
+  
   echo "Cleaning up..."
   rm *.png
-  cd $cwd
+  
+  cd $d
   echo "Replacing original file..."
-  cp "$tmp_dir/output.pdf" "$1"
+  cp "$tmp_dir/output.pdf" "$original"
+  
   echo "Cleaning up..."
   rm -rf "$tmp_dir"
+  
   echo "Done!"
 fi
